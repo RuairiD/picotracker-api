@@ -20,8 +20,10 @@ class Command(BaseCommand):
         pass
 
     def update_game_rating(self, game):
-        days_since_release = abs((game.time_created - timezone.now()).days)
-        rating = (game.stars + 0.1 * game.comments)/days_since_release
+        days_since_release = (timezone.now() - game.time_created).days
+        if days_since_release < 1:
+            days_since_release = 1
+        rating = (game.stars + 0.1 * game.comments) / math.sqrt(days_since_release)
         game.rating = rating
         game.save()
 
@@ -73,6 +75,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for page in range(1, MAX_PAGES + 1):
             tree = PyQuery(url=BBS_URL.format(page=page))
+            # Converting Javascript to Python for the mentally feeble.
             games_data = json.loads(
                 tree.text().split('pdat=')[1].split('; var')[0].replace("`", "'").replace(",]", "]").replace("['",'["').replace("',",'",').replace(", '",', "').replace(",'",',"').replace("']",'"]').replace(",,",",").replace("], ]", "] ]"),
             )
