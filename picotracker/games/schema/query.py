@@ -10,7 +10,7 @@ class Query(graphene.ObjectType):
     def resolve_games(self, info):
         games = Game.objects.order_by(
             '-rating'
-        ).all()[:9]
+        ).all()[:18]
 
         return [
             GameType.from_model(game)
