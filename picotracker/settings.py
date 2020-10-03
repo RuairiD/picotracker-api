@@ -44,6 +44,7 @@ if DEBUG:
 else:
     CORS_ORIGIN_WHITELIST = [
         'https://picotracker-web.herokuapp.com',
+        'https://picotracker.ruairidx.com',
     ]
 
 if not DEBUG:
