@@ -23,7 +23,7 @@ class Command(BaseCommand):
         days_since_release = (timezone.now() - game.time_created).days
         if days_since_release < 1:
             days_since_release = 1
-        rating = (game.stars + 0.1 * game.comments) / math.sqrt(days_since_release)
+        rating = (game.stars + 0.1 * game.comments) / (1.1 ** days_since_release)
         game.rating = rating
         game.save()
 
@@ -40,6 +40,11 @@ class Command(BaseCommand):
 
         developer_bbs_id = int(game_data[7])
         developer_username = game_data[8]
+
+        # If image_url is not a proper thumbail, thread does not contain a cart
+        # and should be ignored.
+        if "/bbs/thumbs" not in image_url:
+            return
 
         print(bbs_id, name, stars, comments, image_url, time_created, developer_bbs_id, developer_username)
 
