@@ -16,22 +16,33 @@ TIMEFRAMES = {
 class Query(graphene.ObjectType):
     games = graphene.List(
         GameType,
-        timeframe=graphene.String(required=False, default_value="week"),
+        sort_method=graphene.String(required=False, default_value="hot"),
     )
 
-    def resolve_games(self, info, timeframe):
-        latest_datetime = timezone.now() - TIMEFRAMES[timeframe]
-
-        import time; time.sleep(1)
-
+    def resolve_games(self, info, sort_method):
         games = Game.objects.filter(
-            time_created__gte=latest_datetime,
             # Only return games that have at least one star
             # to partly filter the shovelware.
             stars__gte=1,
-        ).order_by(
-            '-rating'
-        ).all()[:18]
+        )
+
+        if sort_method in TIMEFRAMES:
+            latest_datetime = timezone.now() - TIMEFRAMES[sort_method]
+            games = games.filter(
+                time_created__gte=latest_datetime,
+            ).order_by(
+                '-stars',
+                '-comments',
+                '-rating',
+            )
+        else:
+            games = games.order_by(
+                '-rating',
+                '-stars',
+                '-comments',
+            )
+
+        games = games.all()[:18]
 
         return [
             GameType.from_model(game)

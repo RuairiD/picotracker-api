@@ -4,7 +4,14 @@ from picotracker.games.models import Developer
 
 
 class GameAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ['developer__username']
+    list_display = (
+        'name',
+        'stars',
+        'comments',
+        'rating',
+        'time_created',
+    )
 
 
 class DeveloperAdmin(admin.ModelAdmin):
