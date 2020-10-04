@@ -7,6 +7,7 @@ class Developer(models.Model):
 
     def __str__(self):
         return f'{self.username}'
+
     class Meta:
         verbose_name = 'Developer'
         verbose_name_plural = 'Developers'
@@ -24,7 +25,7 @@ class Game(models.Model):
     developer = models.ForeignKey(
         Developer,
         related_name='games',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):
@@ -33,3 +34,19 @@ class Game(models.Model):
     class Meta:
         verbose_name = 'Game'
         verbose_name_plural = 'Games'
+
+
+class Tag(models.Model):
+    value = models.CharField(max_length=255)
+    game = models.ForeignKey(
+        Game,
+        related_name='tags',
+        on_delete=models.CASCADE,
+    )
+
+    def __str__(self):
+        return f'#{self.value} for {self.game.name}'
+
+    class Meta:
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'

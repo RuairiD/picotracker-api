@@ -29,6 +29,7 @@ class GameType(graphene.ObjectType):
     comments = graphene.Int()
     rating = graphene.Float()
     time_created = graphene.types.datetime.DateTime()
+    tags = graphene.List(graphene.String)
     developer = graphene.Field(DeveloperType)
 
     @classmethod
@@ -42,6 +43,10 @@ class GameType(graphene.ObjectType):
             comments=model.comments,
             rating=model.rating,
             time_created=model.time_created,
+            tags=[
+                tag.value
+                for tag in model.tags.all()
+            ],
             developer=DeveloperType.from_model(model.developer),
         )
 

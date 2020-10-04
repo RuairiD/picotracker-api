@@ -17,7 +17,7 @@ every_3_hours_trigger = OrTrigger([
 ])
 
 
-@register_job(scheduler, every_3_hours_trigger)
+@register_job(scheduler, every_3_hours_trigger, replace_existing=True)
 def update_games():
     print('Starting: update_games')
     call_command('update_games')

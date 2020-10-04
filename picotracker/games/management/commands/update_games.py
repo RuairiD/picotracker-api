@@ -7,6 +7,7 @@ from pyquery import PyQuery
 
 from picotracker.games.models import Developer
 from picotracker.games.models import Game
+from picotracker.games.models import Tag
 
 BBS_URL = 'https://www.lexaloffle.com/bbs/lister.php?use_hurl=1&cat=7&sub=0&page={page}&mode=&sub=2'
 MAX_PAGES = 3
@@ -41,12 +42,14 @@ class Command(BaseCommand):
         developer_bbs_id = int(game_data[7])
         developer_username = game_data[8]
 
+        tags = game_data[18]
+
         # If image_url is not a proper thumbail, thread does not contain a cart
         # and should be ignored.
         if "/bbs/thumbs" not in image_url:
             return
 
-        print(bbs_id, name, stars, comments, image_url, time_created, developer_bbs_id, developer_username)
+        print(bbs_id, name, stars, comments, image_url, time_created, developer_bbs_id, developer_username, tags)
 
         developer = Developer.objects.filter(bbs_id=developer_bbs_id).first()
         if not developer:
@@ -76,6 +79,18 @@ class Command(BaseCommand):
             game.time_created = time_created
             game.developer = developer
         game.save()
+
+        for tag in tags:
+            existing_tag = Tag.objects.filter(
+                value=tag,
+                game=game,
+            ).first()
+            if not existing_tag:
+                new_tag = Tag(
+                    value=tag,
+                    game=game,
+                )
+                new_tag.save()
 
     def handle(self, *args, **options):
         for page in range(1, MAX_PAGES + 1):
