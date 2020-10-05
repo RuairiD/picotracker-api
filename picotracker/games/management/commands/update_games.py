@@ -9,11 +9,15 @@ from picotracker.games.models import Developer
 from picotracker.games.models import Game
 from picotracker.games.models import Tag
 
+
 BBS_URL = 'https://www.lexaloffle.com/bbs/lister.php?use_hurl=1&cat=7&sub=0&page={page}&mode=&sub=2'
 MAX_PAGES = 3
 
+
 class Command(BaseCommand):
     """
+    Collect game data from the top MAX_PAGES of the Lexaloffle BBS carts section, format it
+    and store it in the database for later retrieval.
     """
     help = "Update games in database from BBS."
 
@@ -51,6 +55,9 @@ class Command(BaseCommand):
 
         print(bbs_id, name, stars, comments, image_url, time_created, developer_bbs_id, developer_username, tags)
 
+        # All relevant objects are checked for existence first since a game can be be caught by this script
+        # multiple times if it stays towards the top of the BBS between runs. We still update them in these
+        # cases but we don't want duplicate records.
         developer = Developer.objects.filter(bbs_id=developer_bbs_id).first()
         if not developer:
             developer = Developer(
@@ -93,16 +100,53 @@ class Command(BaseCommand):
                 new_tag.save()
 
     def handle(self, *args, **options):
+        """
+        The Lexaloffle BBS has a slightly strange page loading system. The initial /bbs page load contains
+        *some* data but not enough to actually render everything, so the page makes a second AJAX call to
+        lister.php, which returns all the data necessary to load the BBS page. Making both requests here is
+        unnecessary since all the data we actually care about is in the lister.php payload.
+
+        Initially, I used PyQuery to parse the rendered HTML and extract game data that way, but this was cumbersome.
+        Eventually I discovered that the game data was hard-coded into the Javascript embedded in the HTML,
+        and this could be (painstakingly) accessed to directly load in all the data for that BBS page load
+        as a Python object. All that was left was figuring out which data was kept in which index.
+        """
         for page in range(1, MAX_PAGES + 1):
             tree = PyQuery(url=BBS_URL.format(page=page))
-            # Converting Javascript to Python for the mentally feeble.
+            # Extract bbs game data stored in a javascript array before
+            # reformatting it to be JSON friendly (trailing commas etc.)
+            # and finally loading the JSON itself. Voila, JS -> Python!
             games_data = json.loads(
-                tree.text().split('pdat=')[1].split('; var')[0].replace("`", "'").replace(",]", "]").replace("['",'["').replace("',",'",').replace(", '",', "').replace(",'",',"').replace("']",'"]').replace(",,",",").replace("], ]", "] ]"),
+                tree.text().split(
+                    'pdat='
+                )[1].split(
+                    '; var'
+                )[0].replace(
+                    "`", "'"
+                ).replace(
+                    ",]", "]"
+                ).replace(
+                    "['",'["'
+                ).replace(
+                    "',",'",'
+                ).replace(
+                    ", '",', "'
+                ).replace(
+                    ",'",',"'
+                ).replace(
+                    "']",'"]'
+                ).replace(
+                    ",,",","
+                ).replace(
+                    "], ]", "] ]"
+                ),
             )
             for game_data in games_data:
                 self.update_game_from_data(game_data)
 
-        # Update ratings for all games
+        # Update ratings for all games, not just the ones we just loaded
+        # from the BBS; this ensures that old games have their scores lowered even 
+        # after dropping too far off the BBS.
         for game in Game.objects.all():
             self.update_game_rating(game)
 
