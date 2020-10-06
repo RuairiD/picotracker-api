@@ -14,6 +14,9 @@ BBS_URL = 'https://www.lexaloffle.com/bbs/lister.php?use_hurl=1&cat=7&sub=0&page
 MAX_PAGES = 3
 
 
+TIME_DECAY_FACTOR = 1.2
+
+
 class Command(BaseCommand):
     """
     Collect game data from the top MAX_PAGES of the Lexaloffle BBS carts section, format it
@@ -28,7 +31,7 @@ class Command(BaseCommand):
         days_since_release = (timezone.now() - game.time_created).days
         if days_since_release < 1:
             days_since_release = 1
-        rating = (game.stars + 0.1 * game.comments) / (1.1 ** days_since_release)
+        rating = (game.stars + 0.1 * game.comments) / (TIME_DECAY_FACTOR ** days_since_release)
         game.rating = rating
         game.save()
 

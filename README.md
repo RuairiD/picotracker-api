@@ -4,7 +4,7 @@ Picotracker provides an alternative sorting system to the Lexaloffle BBS. Instea
 
 Ratings are calculated using the following formula, where `t` is the number of days since the game's release.
 
-<img src="https://latex.codecogs.com/gif.latex?rating&space;=&space;\frac{(likes&space;\times&space;\frac{comments}{10})}{1.1&space;^&space;t}" title="rating = \frac{(likes \times \frac{comments}{10})}{1.1 ^ t}" />
+<img src="https://latex.codecogs.com/gif.latex?rating&space;=&space;\frac{(likes&space;+&space;\frac{comments}{10})}{1.2&space;^&space;t}" title="rating = \frac{(likes + \frac{comments}{10})}{1.2 ^ t}" alt="rating = (likes + comments/10)/(1.2 ^ t)" />
 
 ## Running
 This is a pretty standard Django project for the most part. As-is, it is designed to be run on Heroku, but setting `DEBUG = True` in `settings.py` will allow it to run on `localhost` with a sqlite DB. Run these inside a python3 virtualenv:
