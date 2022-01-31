@@ -25,7 +25,12 @@ class Command(BaseCommand):
     help = "Update games in database from BBS."
 
     def add_arguments(self, parser):
-        pass
+        parser.add_argument(
+            '--max_pages',
+            default=MAX_PAGES,
+            type=int,
+            help=f'The max number of BBS pages to search for games (default {MAX_PAGES}).',
+        )
 
     def update_game_rating(self, game):
         days_since_release = (timezone.now() - game.time_created).days
@@ -114,7 +119,7 @@ class Command(BaseCommand):
         and this could be (painstakingly) accessed to directly load in all the data for that BBS page load
         as a Python object. All that was left was figuring out which data was kept in which index.
         """
-        for page in range(1, MAX_PAGES + 1):
+        for page in range(1, options['max_pages'] + 1):
             tree = PyQuery(url=BBS_URL.format(page=page))
             # Extract bbs game data stored in a javascript array before
             # reformatting it to be JSON friendly (trailing commas etc.)
