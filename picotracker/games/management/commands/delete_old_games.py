@@ -1,14 +1,9 @@
-import json
-import math
-from datetime import datetime
 from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from pyquery import PyQuery
 
 from picotracker.games.models import Developer
 from picotracker.games.models import Game
-from picotracker.games.models import Tag
 
 
 MAX_AGE = timedelta(days=365)
